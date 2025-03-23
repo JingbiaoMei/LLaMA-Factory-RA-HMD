@@ -7,7 +7,7 @@ trust_remote_code: true
 finetuning_type: lora
 
 ### dataset
-task: mmlu_test  # choices: [mmlu_test, ceval_validation, cmmlu_test]
+task: mmlu_val  # choices: [mmlu_val, ceval_validation, cmmlu_val]
 template: fewshot
 lang: en
 n_shot: 5

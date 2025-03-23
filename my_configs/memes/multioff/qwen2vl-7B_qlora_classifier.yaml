@@ -1,0 +1,61 @@
+### model
+model_name_or_path: QWen/QWen2-VL-7B-Instruct
+quantization_bit: 4
+quantization_method: bitsandbytes  # choices: [bitsandbytes (4/8), hqq (2/3/4/5/6/8), eetq (8)]
+seed: 42
+
+### method
+stage: sft-classifier
+do_train: true
+finetuning_type: lora
+lora_target: all
+lora_alpha: 256
+lora_dropout: 0.05
+lora_rank: 128
+#deepspeed: examples/deepspeed/ds_z3_config.json
+
+
+### dataset
+dataset: multioff # video: mllm_video_demo
+template: qwen2_vl
+cutoff_len: 1024 
+max_samples: 400000 # 400000
+overwrite_cache: true
+preprocessing_num_workers: 16
+
+### output
+output_dir: checkpoints/qwen2_vl-7b/qlora/multioff/${DATE}_baseline-clssifier
+logging_steps: 1
+save_steps: 50
+plot_loss: true
+overwrite_output_dir: true
+
+### train
+per_device_train_batch_size: 16
+gradient_accumulation_steps: 1
+learning_rate: 4.0e-5
+num_train_epochs: 12.0
+lr_scheduler_type: cosine
+warmup_ratio: 0.1
+bf16: true
+ddp_timeout: 180000000
+flash_attn: fa2
+enable_liger_kernel: true
+
+### eval
+#val_size: 0.001
+per_device_eval_batch_size: 16
+eval_strategy: steps
+eval_steps: 50
+eval_dataset: multioff_val
+
+report_to: wandb
+run_name: ${RUN_NAME}
+
+
+## rgcl 
+loss_ratio: [1.0, 1.0] 
+classifier_lr: 1e-4
+num_layers: 3
+dropout: [0.2, 0.4, 0.1]
+#custom_debug: true

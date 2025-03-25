@@ -179,3 +179,5 @@ generated_predictions.jsonl
 
 data/gt
 data/image
+checkpoints
+wandb

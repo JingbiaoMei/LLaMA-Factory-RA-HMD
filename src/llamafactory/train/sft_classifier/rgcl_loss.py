@@ -7,7 +7,7 @@ import faiss.contrib.torch_utils
 import numpy as np
 from easydict import EasyDict
 from easydict import EasyDict
-from rank_bm25 import BM25Okapi
+#from rank_bm25 import BM25Okapi
 from tqdm import tqdm
 
 

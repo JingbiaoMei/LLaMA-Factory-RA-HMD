@@ -56,7 +56,8 @@ from transformers.trainer_pt_utils import find_batch_size, nested_concat, nested
 from collections.abc import Mapping
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
-from transformers.deepspeed import deepspeed_init
+#from transformers.deepspeed import deepspeed_init
+from transformers.integrations.deepspeed import deepspeed_init
 from transformers.trainer import has_length
 from transformers.trainer import is_sagemaker_mp_enabled
 
@@ -224,10 +225,15 @@ class CustomSeq2SeqRegressionTrainer(Seq2SeqTrainer):
         return self.optimizer
     
 
-    def compute_loss(self, model, inputs, return_outputs=False, eval_mode=False):
+    def compute_loss(self, model, inputs, num_items_in_batch=None, return_outputs=False, eval_mode=False):
+        # num_items_in_batch=None for fixing the issue in hf=4.49.0 
+        # https://github.com/huggingface/transformers/issues/36331
+        
         # If input in the begining of the script, system crashes
         from .rgcl_loss import compute_rgcl_loss
-        
+        # Note that the RGCL loss is only included in stage 2 training. 
+        # The implementation of the RGCL loss here is for the ablation study in the paper.
+        # Where the RGCL loss is included in the training from the beginning, i.e., combining with two stages
         # Current step
         if not eval_mode:
             try:
@@ -862,7 +868,7 @@ class CustomSeq2SeqRegressionTrainer(Seq2SeqTrainer):
 
         return EvalLoopOutput(predictions=all_preds, label_ids=all_labels, metrics=metrics, num_samples=num_samples)
 
-    def _maybe_log_save_evaluate(self, tr_loss, grad_norm, model, trial, epoch, ignore_keys_for_eval):
+    def _maybe_log_save_evaluate(self, tr_loss, grad_norm, model, trial, epoch, ignore_keys_for_eval, start_time):
         if self.control.should_log and self.state.global_step > self._globalstep_last_logged:
 
             logs: Dict[str, float] = {}

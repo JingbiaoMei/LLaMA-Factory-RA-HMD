@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -J qwen2vl-7b-harmc-classifier_qlora_hyper
+#SBATCH -J qwen2vl-7b-harmc-classifier_qlora
 #SBATCH -A GVDD-SL2-GPU
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -12,7 +12,7 @@
 #SBATCH -p ampere
 model_name="qwen2vl-7B"
 dataset_name="harmc"
-mode="qlora_classifier_hyper"
+mode="qlora_classifier"
 additional_args="" # Rember to add _ before the additional args
 
 current_date=$(date +"%Y-%m-%d")
@@ -25,8 +25,8 @@ export WANDB_RUN_GROUP="Finetuning_${model_name}_${dataset_name}_${current_date}
 
 which python
 
-envsubst < my_configs/hateful/${dataset_name}/${model_name}_${mode}${additional_args}.yaml > my_configs/hateful/${dataset_name}/${model_name}_${mode}${additional_args}_temp.yaml
+envsubst < my_configs/memes/${dataset_name}/${model_name}_${mode}${additional_args}.yaml > my_configs/memes/${dataset_name}/${model_name}_${mode}${additional_args}_temp.yaml
 
-llamafactory-cli train my_configs/hateful/${dataset_name}/${model_name}_${mode}${additional_args}_temp.yaml
+llamafactory-cli train my_configs/memes/${dataset_name}/${model_name}_${mode}${additional_args}_temp.yaml
 
-rm my_configs/hateful/${dataset_name}/${model_name}_${mode}${additional_args}_temp.yaml
+rm my_configs/memes/${dataset_name}/${model_name}_${mode}${additional_args}_temp.yaml

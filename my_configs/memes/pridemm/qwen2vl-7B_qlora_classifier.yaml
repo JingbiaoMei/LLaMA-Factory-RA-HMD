@@ -47,7 +47,7 @@ enable_liger_kernel: true
 per_device_eval_batch_size: 16
 eval_strategy: steps
 eval_steps: 50
-eval_dataset: pridemm_val
+eval_dataset: pridemm_dev
 
 report_to: wandb
 run_name: ${RUN_NAME}

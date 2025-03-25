@@ -14,8 +14,8 @@ export WANDB_RUN_GROUP="Finetuning_${model_name}_${dataset_name}_${current_date}
 
 which python
 
-envsubst < my_configs/hateful/${dataset_name}/${model_name}_${mode}${additional_args}.yaml > my_configs/hateful/${dataset_name}/${model_name}_${mode}${additional_args}_temp.yaml
+envsubst < my_configs/memes/${dataset_name}/${model_name}_${mode}${additional_args}.yaml > my_configs/memes/${dataset_name}/${model_name}_${mode}${additional_args}_temp.yaml
 
-llamafactory-cli train my_configs/hateful/${dataset_name}/${model_name}_${mode}${additional_args}_temp.yaml
+llamafactory-cli train my_configs/memes/${dataset_name}/${model_name}_${mode}${additional_args}_temp.yaml
 
-rm my_configs/hateful/${dataset_name}/${model_name}_${mode}${additional_args}_temp.yaml
+rm my_configs/memes/${dataset_name}/${model_name}_${mode}${additional_args}_temp.yaml

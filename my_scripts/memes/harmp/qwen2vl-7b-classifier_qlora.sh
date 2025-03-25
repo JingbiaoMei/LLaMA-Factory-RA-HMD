@@ -1,6 +1,5 @@
-
 model_name="qwen2vl-7B"
-dataset_name="mami"
+dataset_name="harmp"
 mode="qlora_classifier"
 additional_args="" # Rember to add _ before the additional args
 

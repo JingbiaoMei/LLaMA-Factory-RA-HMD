@@ -47,7 +47,7 @@ enable_liger_kernel: true
 per_device_eval_batch_size: 2
 eval_strategy: steps
 eval_steps: 50
-eval_dataset: harmp_val
+eval_dataset: harmp_dev
 
 report_to: wandb
 run_name: ${RUN_NAME}

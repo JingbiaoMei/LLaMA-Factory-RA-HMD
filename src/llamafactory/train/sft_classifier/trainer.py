@@ -931,7 +931,9 @@ class CustomSeq2SeqRegressionTrainer(Seq2SeqTrainer):
             metrics = self._evaluate(trial, ignore_keys_for_eval)
 
         if self.control.should_save:
-            self._save_checkpoint(model, trial, metrics=metrics)
+            #self._save_checkpoint(model, trial, metrics=metrics)
+            # Fix for hf 4.49 
+            self._save_checkpoint(model, trial)
             self.control = self.callback_handler.on_save(self.args, self.state, self.control)
     def save_model(self, output_dir: Optional[str] = None, _internal_call: bool = False):
         """

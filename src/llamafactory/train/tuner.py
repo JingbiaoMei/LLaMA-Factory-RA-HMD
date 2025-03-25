@@ -35,7 +35,8 @@ from .pt import run_pt
 from .rm import run_rm
 from .sft import run_sft
 from .trainer_utils import get_ray_trainer, get_swanlab_callback
-
+# LMM RGCL
+from .sft_classifier import run_sft_classifier
 
 if is_ray_available():
     import ray
@@ -75,6 +76,8 @@ def _training_function(config: dict[str, Any]) -> None:
         run_dpo(model_args, data_args, training_args, finetuning_args, callbacks)
     elif finetuning_args.stage == "kto":
         run_kto(model_args, data_args, training_args, finetuning_args, callbacks)
+    elif finetuning_args.stage == "sft-classifier":
+        run_sft_classifier(model_args, data_args, training_args, finetuning_args, generating_args, callbacks)
     else:
         raise ValueError(f"Unknown task: {finetuning_args.stage}.")
 

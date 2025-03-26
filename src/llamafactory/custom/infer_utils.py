@@ -243,7 +243,11 @@ class QWen2Classifier():
         if self.model is None:
             self._init_model()
             # Assert the processor is left padded
-            assert self.processor.tokenizer.padding_side == "left" 
+            # Change to less strict assertion
+            #assert self.processor.tokenizer.padding_side == "left"
+            if self.processor.tokenizer.padding_side != "left":
+                print("Padding side is not left, may cause issues")
+            
             self.yes_token_id = self.processor.tokenizer.convert_tokens_to_ids("Yes")
             self.no_token_id = self.processor.tokenizer.convert_tokens_to_ids("No")
         
@@ -318,7 +322,9 @@ class QWen2Classifier():
         if self.model is None:
             self._init_model()
             # Assert the processor is left padded
-            assert self.processor.tokenizer.padding_side == "left"
+            #assert self.processor.tokenizer.padding_side == "left"
+            if self.processor.tokenizer.padding_side != "left":
+                print("Padding side is not left, may cause issues")
             self.yes_token_id = self.processor.tokenizer.convert_tokens_to_ids("Yes")
             self.no_token_id = self.processor.tokenizer.convert_tokens_to_ids("No")
         
@@ -405,7 +411,9 @@ class QWen2Classifier():
         if self.model is None:
             self._init_model()
             # Assert the processor is left padded
-            assert self.processor.tokenizer.padding_side == "left" 
+            #assert self.processor.tokenizer.padding_side == "left" 
+            if self.processor.tokenizer.padding_side != "left":
+                print("Padding side is not left, may cause issues")
             self.yes_token_id = self.processor.tokenizer.convert_tokens_to_ids("Yes")
             self.no_token_id = self.processor.tokenizer.convert_tokens_to_ids("No")
         

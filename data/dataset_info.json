@@ -13,6 +13,76 @@
       "assistant_tag": "assistant"
     }
   },
+    "hatefulmemes_reasoning": {
+    "file_name": "gt/FB/sharegpt_FB_train_reasoning.json",
+    "formatting": "sharegpt",
+    "columns": {
+      "messages": "messages",
+      "images": "images"
+    },
+    "tags": {
+      "role_tag": "role",
+      "content_tag": "content",
+      "user_tag": "user",
+      "assistant_tag": "assistant"
+    }
+  },
+    "hatefulmemes_pc": {
+    "file_name": "gt/FB/sharegpt_FB_train_pc.json",
+    "formatting": "sharegpt",
+    "columns": {
+      "messages": "messages",
+      "images": "images"
+    },
+    "tags": {
+      "role_tag": "role",
+      "content_tag": "content",
+      "user_tag": "user",
+      "assistant_tag": "assistant"
+    }
+  },
+  "hatefulmemes_attack": {
+    "file_name": "gt/FB/sharegpt_FB_train_attack.json",
+    "formatting": "sharegpt",
+    "columns": {
+      "messages": "messages",
+      "images": "images"
+    },
+    "tags": {
+      "role_tag": "role",
+      "content_tag": "content",
+      "user_tag": "user",
+      "assistant_tag": "assistant"
+    }
+  },
+  "hatefulmemes_pc_choice": {
+    "file_name": "gt/FB/sharegpt_FB_train_pc_choice.json",
+    "formatting": "sharegpt",
+    "columns": {
+      "messages": "messages",
+      "images": "images"
+    },
+    "tags": {
+      "role_tag": "role",
+      "content_tag": "content",
+      "user_tag": "user",
+      "assistant_tag": "assistant"
+    }
+  },
+  "hatefulmemes_attack_choice": {
+    "file_name": "gt/FB/sharegpt_FB_train_attack_choice.json",
+    "formatting": "sharegpt",
+    "columns": {
+      "messages": "messages",
+      "images": "images"
+    },
+    "tags": {
+      "role_tag": "role",
+      "content_tag": "content",
+      "user_tag": "user",
+      "assistant_tag": "assistant"
+    }
+  },
   "hatefulmemes_dev": {
     "file_name": "gt/FB/sharegpt_FB_dev_seen_instructblip.json",
     "formatting": "sharegpt",

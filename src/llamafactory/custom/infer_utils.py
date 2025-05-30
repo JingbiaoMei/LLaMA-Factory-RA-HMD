@@ -265,7 +265,8 @@ class QWen2Classifier():
             # Change to less strict assertion
             #assert self.processor.tokenizer.padding_side == "left"
             if self.processor.tokenizer.padding_side != "left":
-                print("Padding side is not left, may cause issues")
+                print("Padding side is not left, may cause issues, set to left")
+                self.processor.tokenizer.padding_side = "left"
             
             self.yes_token_id = self.processor.tokenizer.convert_tokens_to_ids("Yes")
             self.no_token_id = self.processor.tokenizer.convert_tokens_to_ids("No")

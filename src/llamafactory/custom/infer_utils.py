@@ -16,6 +16,9 @@ import wandb
 import torchmetrics
 from tqdm import tqdm
 from transformers import BitsAndBytesConfig
+from sklearn.preprocessing import MultiLabelBinarizer
+from sklearn.metrics import classification_report, accuracy_score, f1_score
+
 class All_Reranker(ABC):
     @abstractmethod
     def rank(self, question, query_img, retrieved_docs):
@@ -41,7 +44,7 @@ class VLMReranker(All_Reranker):
 
         self.model = None
 
-from transformers import Qwen2VLForConditionalGeneration, AutoTokenizer, AutoProcessor
+from transformers import Qwen2VLForConditionalGeneration, Qwen2_5_VLForConditionalGeneration, AutoTokenizer, AutoProcessor
 from qwen_vl_utils import process_vision_info
 class QWen2Reranker(VLMReranker):
     def __init__(self, *args, **kwargs):
@@ -49,8 +52,16 @@ class QWen2Reranker(VLMReranker):
     
     def _init_model(self):
         # We recommend enabling flash_attention_2 for better acceleration and memory saving, especially in multi-image and video scenarios.
+        if "Qwen2-VL" in self.model_path or "qwen2_vl" in self.model_path:
+            model_cls = Qwen2VLForConditionalGeneration
+        elif "Qwen2.5-VL" in self.model_path or "qwen25_vl" in self.model_path:
+            model_cls = Qwen2_5_VLForConditionalGeneration
+        else:
+            raise ValueError(f"Unsupported model: {self.model_path}")
+
+
         if not self.is_lora:
-            self.model = Qwen2VLForConditionalGeneration.from_pretrained(
+            self.model = model_cls.from_pretrained(
                 self.model_path,
                 torch_dtype=torch.bfloat16,
                 attn_implementation="flash_attention_2",
@@ -59,7 +70,7 @@ class QWen2Reranker(VLMReranker):
             self.processor = AutoProcessor.from_pretrained(self.processor_path or self.model_path)
         else:
             assert self.base_model_path is not None
-            self.model = Qwen2VLForConditionalGeneration.from_pretrained(
+            self.model = model_cls.from_pretrained(
                 self.base_model_path,
                 torch_dtype=torch.bfloat16,
                 attn_implementation="flash_attention_2",
@@ -164,6 +175,14 @@ class QWen2Classifier():
     def _init_model(self):
         # We recommend enabling flash_attention_2 for better acceleration and memory saving, especially in multi-image and video scenarios.
         torch.set_default_dtype(torch.bfloat16)
+        if "Qwen2-VL" in self.model_path or "qwen2_vl" in self.model_path:
+            model_cls = Qwen2VLForConditionalGeneration
+        elif "Qwen2.5-VL" in self.model_path or "qwen25_vl" in self.model_path:
+            model_cls = Qwen2_5_VLForConditionalGeneration
+        else:
+            raise ValueError(f"Unsupported model: {self.model_path}")
+
+
         if self.load_4bit:
             quantization_config = BitsAndBytesConfig(
                                 load_in_4bit=True,
@@ -180,7 +199,7 @@ class QWen2Classifier():
             quantization_config = None
         
         if not self.is_lora:
-            self.model = Qwen2VLForConditionalGeneration.from_pretrained(
+            self.model = model_cls.from_pretrained(
                 self.model_path,
                 torch_dtype=torch.bfloat16,
                 attn_implementation="flash_attention_2",
@@ -194,7 +213,7 @@ class QWen2Classifier():
             
         else:
             assert self.base_model_path is not None
-            self.model = Qwen2VLForConditionalGeneration.from_pretrained(
+            self.model = model_cls.from_pretrained(
                 self.base_model_path,
                 torch_dtype=torch.bfloat16,
                 attn_implementation="flash_attention_2",
@@ -322,9 +341,7 @@ class QWen2Classifier():
         if self.model is None:
             self._init_model()
             # Assert the processor is left padded
-            #assert self.processor.tokenizer.padding_side == "left"
-            if self.processor.tokenizer.padding_side != "left":
-                print("Padding side is not left, may cause issues")
+            assert self.processor.tokenizer.padding_side == "left"
             self.yes_token_id = self.processor.tokenizer.convert_tokens_to_ids("Yes")
             self.no_token_id = self.processor.tokenizer.convert_tokens_to_ids("No")
         
@@ -411,9 +428,7 @@ class QWen2Classifier():
         if self.model is None:
             self._init_model()
             # Assert the processor is left padded
-            #assert self.processor.tokenizer.padding_side == "left" 
-            if self.processor.tokenizer.padding_side != "left":
-                print("Padding side is not left, may cause issues")
+            assert self.processor.tokenizer.padding_side == "left" 
             self.yes_token_id = self.processor.tokenizer.convert_tokens_to_ids("Yes")
             self.no_token_id = self.processor.tokenizer.convert_tokens_to_ids("No")
         
@@ -632,7 +647,138 @@ def predict_and_eval(VLMClassifier,
     
     return (acc, auc,pre, recall, f1), (acc_, auc_, pre_, recall_, f1_)
 
+def predict_and_eval_fine_grain(VLMClassifier, dataset, split_dl=None, split=None, topk=-1):
+    # Similar to predict_and_eval but for fine-grained evaluation
+    logging_columns = [
+        "id",
+        "gt_labels",
+        "pred_labels",
+    ]
+    metrics_columns = ["class", "precision", "recall", "f1", "support"]
+    ids = []
+    labels = []
+    predicted_texts = []
+    logging_table = wandb.Table(columns=logging_columns)
+    overall_metrics_table = wandb.Table(columns=metrics_columns)
+    class_metrics_table = wandb.Table(columns=metrics_columns)
 
+    for i, batch in tqdm(enumerate(split_dl), total=len(split_dl)):
+        bz = len(batch[0])
+        images, texts, labels_batch, ids_batch = batch
+
+        
+        output_gen, _ = VLMClassifier.predict(
+            texts,
+            images
+        )
+
+        ids.extend(ids_batch)
+        labels.append(labels_batch.detach().cpu())
+        predicted_texts.append(output_gen.detach().cpu())
+
+        # For debugging 
+        if topk != -1 and len(ids) >= topk:
+            break
+        
+
+    #label look like this, it may have one label or multiple labels for each sample
+    # ["inciting_violence","dehumanizing"] 
+    #["dehumanizing"]
+    # Thus, labels and label_texts are lists of lists
+    
+    # Infer all the classes from the labels 
+    all_classes = set()
+    for label_list in labels:
+        all_classes.update(set(label_list))
+    all_classes = sorted(list(all_classes))
+    
+
+    #benign_class_name = "attack_empty" if dataset.lower() == "fb-fine-grained-pc" 
+    if dataset.lower() == "fb-fine-grained-pc":
+        benign_class_name = "pc_empty"
+        assert "pc_empty" in all_classes, "pc_empty class not found in labels"
+    elif dataset.lower() == "fb-fine-grained-attack":
+        benign_class_name = "attack_empty"
+        assert "attack_empty" in all_classes, "attack_empty class not found in labels"
+    else:
+        raise ValueError("Unsupported dataset for fine-grained evaluation: {}".format(dataset))
+    # Convert labels to binary format
+    mlb = MultiLabelBinarizer(classes=all_classes)
+    binary_labels = mlb.fit_transform(labels)
+    # Find the benign class index
+    #benign_class_index = class_to_index.get(benign_class_name, -1)
+    
+    # Extract labels from generated texts 
+    predicted_labels = []
+    for text in predicted_texts:
+        if "benign" in text.lower():
+            predicted_labels.append([benign_class_name])
+        else:
+            found_labels = []
+            text_lower = text.lower()
+            for cls in all_classes:
+                if cls.lower() in text_lower:
+                    found_labels.append(cls)
+            if len(found_labels) == 0:
+                found_labels.append(benign_class_name)
+                print("No labels found in text: {}, assign benign".format(text))
+            predicted_labels.append(found_labels)
+
+    binary_preds = mlb.fit_transform(predicted_labels)   
+    
+ # Create logging table with sample-level predictions
+    for i, id_ in enumerate(ids):
+        gt_str = ", ".join(labels[i])
+        pred_str = ", ".join(predicted_labels[i])
+        logging_table.add_data(id_, gt_str, pred_str)
+    
+    # Calculate overall metrics
+    accuracy = accuracy_score(binary_labels, binary_preds)
+    micro_f1 = f1_score(binary_labels, binary_preds, average='micro')
+    # Generate classification report for per-class metrics
+    report = classification_report(
+        binary_labels, 
+        binary_preds, 
+        target_names=all_classes,
+        output_dict=True,
+        zero_division=0
+    )
+    
+    # Populate class metrics table
+    for cls in all_classes:
+        cls_report = report[cls]
+        class_metrics_table.add_data(
+            cls,
+            cls_report['precision'],
+            cls_report['recall'],
+            cls_report['f1-score'],
+            int(cls_report['support'])
+        )
+    
+    # Compute additional overall metrics
+    macro_f1 = report['macro avg']['f1-score']
+    weighted_f1 = report['weighted avg']['f1-score']
+    
+    # Log results to WandB
+    wandb.log({
+        "fine_grained/predictions": logging_table,
+        "fine_grained/class_metrics": class_metrics_table,
+        "fine_grained/accuracy": accuracy,
+        "fine_grained/micro_f1": micro_f1,
+        "fine_grained/macro_f1": macro_f1,
+        "fine_grained/weighted_f1": weighted_f1
+    })
+    
+    return {
+        "accuracy": accuracy,
+        "micro_f1": micro_f1,
+        "macro_f1": macro_f1,
+        "weighted_f1": weighted_f1,
+        "class_metrics": report
+    }
+    
+    
+    
 def eval_metrics(dataset, labels, predicted, name="dev_seen", epoch=0, compute_loss=False, print_score=True, apply_sigmoid=True,):
     if len(labels.shape) == 1:
         labels = labels.unsqueeze(1)

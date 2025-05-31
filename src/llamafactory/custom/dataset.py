@@ -112,7 +112,14 @@ def get_values_from_gt(dataset, split):
         list_ids = gt_df["id"].values
         # Get the ordered list of text and labels
         list_text = gt_df["text"].to_list()
-    
+    elif dataset.lower() == "fb-fine-grained-pc" or dataset.lower() == "fb-fine-grained-attack":
+        gt_file = "./data/gt/fine_grained_hateful_memes/" + split + ".json"
+        gt_df = pd.read_json(gt_file, lines=True, dtype=False)
+        # Get the ordered list of image ids
+        list_ids = gt_df["id"].values
+        # Get the ordered list of text and labels
+        list_text = gt_df["text"].to_list()
+        
     else:
         gt_df = None
     # Get the ordered list of image paths
@@ -120,10 +127,18 @@ def get_values_from_gt(dataset, split):
 
     
     
-    if dataset == "FB" or dataset.lower() == "fb" or dataset == "PrideMM":
+    if dataset == "FB" or dataset.lower() == "fb" or dataset.lower() == "pridemm":
         list_label = gt_df["label"].to_list()
         for img_id in list_ids:
             list_image_path.append("./data/image/" + dataset + "/All/" + img_id + ".png")
+    elif dataset.lower() == "fb-fine-grained-pc":
+        list_label = gt_df["gold_pc"].to_list()
+        for img_id in list_ids:
+            list_image_path.append("./data/image/" + "FB" + "/All/" + img_id + ".png")
+    elif dataset.lower() == "fb-fine-grained-attack":
+        list_label = gt_df["gold_attack"].to_list()
+        for img_id in list_ids:
+            list_image_path.append("./data/image/" + "FB" + "/All/" + img_id + ".png")
     elif dataset == "MAMI":
         list_label = gt_df["label"].to_list()
         for img_id in list_ids:
@@ -145,7 +160,7 @@ def get_values_from_gt(dataset, split):
         #for index, text in enumerate(list_text):
         #    list_text[index] = text[:-1]
             
-    elif dataset == "HarmC" or dataset.lower() == "harmc":
+    elif dataset.lower() == "harmc":
         # The HarmC is the same as HarMeme, but here we refer to 3 classes
         # 0: not harmful, 1: 
         list_label = gt_df["labels"]
@@ -226,11 +241,18 @@ def get_values_from_gt(dataset, split):
             list_image = gt_df["image_name"].to_list()
             for img_id in list_image:
                 list_image_path.append("./data/image/" + "Memotion" + "/All/" + img_id)
-
+            #print("start to test images")
+            #for i, image_pth in tqdm(enumerate(list_image_path)):
+            #    try:
+            #        Image.open(image_pth).convert('RGB')
+            #    except:
+            #        print("Error found in image {}".format(i))
             list_ids = list_image
             list_text = gt_df["text_corrected"].to_list()
             list_text_supplement = gt_df["text_ocr"].to_list()
-
+            #print(list_text[119])
+            #print(list_text[119] == "nan")
+            #print(list_text[119] == list_text[119])
             for i, (text, text_sup) in enumerate(zip(list_text, list_text_supplement)):
                 # Address nan in input text
                 if text != text:

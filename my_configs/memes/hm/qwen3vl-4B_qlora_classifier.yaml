@@ -17,7 +17,7 @@ lora_rank: 128
 
 ### dataset
 dataset: hatefulmemes # video: mllm_video_demo
-template: qwen2_vl
+template: qwen3_vl
 cutoff_len: 1024 
 max_samples: 400000 # 400000
 overwrite_cache: true
@@ -31,8 +31,8 @@ plot_loss: true
 overwrite_output_dir: true
 
 ### train
-per_device_train_batch_size: 16
-gradient_accumulation_steps: 1
+per_device_train_batch_size: 4
+gradient_accumulation_steps: 4
 learning_rate: 4.0e-5
 num_train_epochs: 3.0
 lr_scheduler_type: cosine
@@ -57,3 +57,4 @@ run_name: ${RUN_NAME}
 loss_ratio: [1.0, 1.0] 
 classifier_lr: 1e-4
 #custom_debug: true
+use_fast_tokenizer: false

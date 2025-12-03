@@ -24,7 +24,7 @@ overwrite_cache: true
 preprocessing_num_workers: 16
 
 ### output
-output_dir: checkpoints/qwen2.5_vl-3b/qlora/hm/${DATE}_baseline-clssifier
+output_dir: checkpoints/qwen2.5_vl-3b/qlora/hm/2025-12-03_baseline-clssifier
 logging_steps: 1
 save_steps: 50
 plot_loss: true
@@ -50,7 +50,7 @@ eval_steps: 50
 eval_dataset: hatefulmemes_dev
 
 report_to: wandb
-run_name: ${RUN_NAME}
+run_name: qlora_classifier
 
 
 ## rgcl 

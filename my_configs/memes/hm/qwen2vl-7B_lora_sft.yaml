@@ -48,3 +48,4 @@ eval_steps: 5000
 report_to: wandb
 run_name: ${RUN_NAME}
 
+use_fast_tokenizer: false

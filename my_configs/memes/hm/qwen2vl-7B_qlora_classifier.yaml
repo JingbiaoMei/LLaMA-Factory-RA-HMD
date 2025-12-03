@@ -57,3 +57,4 @@ run_name: ${RUN_NAME}
 loss_ratio: [1.0, 1.0] 
 classifier_lr: 1e-4
 #custom_debug: true
+use_fast_tokenizer: false

@@ -125,12 +125,22 @@ class CustomSeq2SeqRegressionTrainer(Seq2SeqTrainer):
         # Unfreeze the classifier
         self.unfreeze_classifier()
         
+        # Initialize yes_token_id based on model type
         if "llava" in self.args.output_dir.lower() and "llava-next" not in self.args.output_dir.lower():
             self.yes_token_id = self.tokenizer.convert_tokens_to_ids("▁Yes")
-        elif "qwen2" in self.args.output_dir.lower():
+        elif "qwen" in self.args.output_dir.lower():
+            # Works for qwen2, qwen2.5, qwen3
             self.yes_token_id = self.tokenizer.convert_tokens_to_ids("Yes")
         elif "llama3-llava-next-8b-hf" in self.args.output_dir.lower():
             self.yes_token_id = self.tokenizer.convert_tokens_to_ids("Yes")
+        else:
+            print("Warning: Untested model, may lead to unexpected behaviour")
+            # Fallback: try to get "Yes" token id
+            self.yes_token_id = self.tokenizer.convert_tokens_to_ids("Yes")
+            if self.yes_token_id is None or self.yes_token_id == self.tokenizer.unk_token_id:
+                # Try with space prefix
+                self.yes_token_id = self.tokenizer.convert_tokens_to_ids("▁Yes")
+        
         self.loss_fn = torch.nn.BCEWithLogitsLoss() 
 
         # Modify the lr without changing the optimizer function

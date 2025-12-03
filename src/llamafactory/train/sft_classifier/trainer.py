@@ -868,7 +868,7 @@ class CustomSeq2SeqRegressionTrainer(Seq2SeqTrainer):
 
         return EvalLoopOutput(predictions=all_preds, label_ids=all_labels, metrics=metrics, num_samples=num_samples)
 
-    def _maybe_log_save_evaluate(self, tr_loss, grad_norm, model, trial, epoch, ignore_keys_for_eval, start_time):
+    def _maybe_log_save_evaluate(self, tr_loss, grad_norm, model, trial, epoch, ignore_keys_for_eval, start_time=None, learning_rate=None):
         if self.control.should_log and self.state.global_step > self._globalstep_last_logged:
 
             logs: Dict[str, float] = {}
@@ -918,7 +918,8 @@ class CustomSeq2SeqRegressionTrainer(Seq2SeqTrainer):
                     positive_loss_after_each_logging, 4)
             if grad_norm is not None:
                 logs["grad_norm"] = grad_norm.detach().item() if isinstance(grad_norm, torch.Tensor) else grad_norm
-            logs["learning_rate"] = self._get_learning_rate()
+            # Use learning_rate parameter if provided, otherwise get it from scheduler
+            logs["learning_rate"] = learning_rate if learning_rate is not None else self._get_learning_rate()
 
             self._total_loss_scalar += tr_loss_scalar
             self._globalstep_last_logged = self.state.global_step

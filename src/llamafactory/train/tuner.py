@@ -34,6 +34,7 @@ from .ppo import run_ppo
 from .pt import run_pt
 from .rm import run_rm
 from .sft import run_sft
+from .sft_classifier import run_sft_classifier
 from .trainer_utils import get_ray_trainer, get_swanlab_callback
 
 
@@ -100,6 +101,8 @@ def _training_function(config: dict[str, Any]) -> None:
         run_dpo(model_args, data_args, training_args, finetuning_args, callbacks)
     elif finetuning_args.stage == "kto":
         run_kto(model_args, data_args, training_args, finetuning_args, callbacks)
+    elif finetuning_args.stage == "sft_classifier":
+        run_sft_classifier(model_args, data_args, training_args, finetuning_args, generating_args, callbacks)
     else:
         raise ValueError(f"Unknown task: {finetuning_args.stage}.")
 

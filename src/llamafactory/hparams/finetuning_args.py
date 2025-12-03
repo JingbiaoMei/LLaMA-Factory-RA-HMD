@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from dataclasses import asdict, dataclass, field
-from typing import Any, Literal, Optional
+from typing import Any, Literal, Optional, List
 
 
 @dataclass
@@ -401,6 +401,51 @@ class BAdamArgument:
 
 
 @dataclass
+class RGCLArguments:
+    r"""Arguments pertaining to the RGCL (Retrieval-augmented Graph Contrastive Learning) training."""
+
+    embed_dim: Optional[int] = field(default=4096)
+    embed_mode: Optional[str] = field(default="last_token")
+    embed_layer: Optional[str] = field(default="last")
+    num_layers: Optional[int] = field(default=2)
+    proj_dim: Optional[int] = field(default=1024)
+    output_dim: Optional[int] = field(default=1)
+    input_dropout: Optional[float] = field(default=0.0)
+    dropout: Optional[List[float]] = field(default=None)
+    freeze_llava: bool = field(default=False)
+    
+    # New classification
+    task: str = field(default="meme_classification")
+    custom_debug: bool = field(default=False, metadata={"help": "Whether to enable custom debug mode."})
+    classifier_lr: float = field(default=1e-4)
+    loss_ratio: Optional[List[float]] = field(default=None)
+
+    # New RGCL arguments
+    rgcl: bool = field(default=False)
+    in_batch_loss: bool = field(default=True)
+    hard_negatives_loss: bool = field(default=True)
+    hard_positive_loss: bool = field(default=False)
+    pseudo_gold_positive_loss: bool = field(default=True)
+    
+    no_hard_negatives: int = field(default=1)
+    no_hard_positives: int = field(default=1)
+    no_pseudo_gold_positives: int = field(default=1)
+    
+    sparse_dictionary: str = field(default=None)
+    sparse_topk: int = field(default=1)
+    
+    # Choose to use which loss function, options are naive, triplet, contrastive
+    rgcl_loss: str = field(default="contrastive")
+    rgcl_reindex_every: int = field(default=250)
+    rgcl_metrics: str = field(default="cos")
+    rgcl_warmup: int = field(default=0)  # Number of steps to warmup the model before starting to use RGCL
+    Faiss_GPU: bool = field(default=True)
+    triplet_margin: float = field(default=0.1)
+    # Copied from RGCL code base
+    hard_negatives_multiple: int = field(default=12)
+
+
+@dataclass
 class SwanLabArguments:
     use_swanlab: bool = field(
         default=False,
@@ -450,6 +495,7 @@ class FinetuningArguments(
     LoraArguments,
     OFTArguments,
     FreezeArguments,
+    RGCLArguments,
 ):
     r"""Arguments pertaining to which techniques we are going to fine-tuning with."""
 
@@ -457,7 +503,7 @@ class FinetuningArguments(
         default=False,
         metadata={"help": "Whether or not to train model in purely bf16 precision (without AMP)."},
     )
-    stage: Literal["pt", "sft", "rm", "ppo", "dpo", "kto"] = field(
+    stage: Literal["pt", "sft", "rm", "ppo", "dpo", "kto", "sft_classifier"] = field(
         default="sft",
         metadata={"help": "Which stage will be performed in training."},
     )
